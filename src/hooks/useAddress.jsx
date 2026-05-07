@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-
-import { db } from 'db/config';
-
+import { KEYS, getItem, setItem } from 'db/config';
 import { useAuthContext } from 'hooks/useAuthContext';
-
 import { handleError } from 'helpers/error/handleError';
 
 export const useAddress = () => {
@@ -15,175 +11,87 @@ export const useAddress = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const userRef = doc(db, 'users', user.uid);
-  const checkoutSessionRef = doc(db, 'checkoutSessions', user.uid);
+  const saveAddresses = (updatedAddresses) => {
+    const users = getItem(KEYS.users) || [];
+    const idx = users.findIndex((u) => u.user.uid === user.uid);
+    if (idx >= 0) {
+      users[idx].addresses = updatedAddresses;
+      setItem(KEYS.users, users);
+      const session = getItem(KEYS.session);
+      setItem(KEYS.session, { ...session, addresses: updatedAddresses });
+    }
+    dispatch({ type: 'UPDATE_ADDRESSES', payload: updatedAddresses });
+  };
 
-  const userAddresses = [...addresses];
-
-  const createAddress = async ({
-    id = null,
-    name,
-    lastName,
-    phoneNumber,
-    address,
-    zipCode,
-    city,
-    state,
-    isMain = false,
-    // isFromCheckout = null,
-  }) => {
+  const createAddress = async ({ id = null, name, lastName, phoneNumber, address, zipCode, city, state, isMain = false }) => {
     setError(null);
     setIsLoading(true);
     try {
-      // if (isFromCheckout) {
-      //   isMain = true;
-      // }
+      const userAddresses = [...addresses];
+      if (!isMain) isMain = userAddresses.length === 0;
+      if (!id) id = uuid();
 
-      if (!isMain) {
-        userAddresses.length === 0 ? (isMain = true) : (isMain = false);
-      }
-
-      if (!id) {
-        id = uuid();
-      }
-
-      const formattedName = name.trim().replace(/\s+/g, ' ');
-      const formattedLastName = lastName.trim().replace(/\s+/g, ' ');
-      const formattedAddress = address.trim().replace(/\s+/g, ' ');
-      const formattedZipCode = zipCode.trim().replace(/\s+/g, ' ');
-      const formattedCity = city.trim().replace(/\s+/g, ' ');
-      const formattedState = state.trim().replace(/\s+/g, ' ');
-
+      const fmt = (s) => s.trim().replace(/\s+/g, ' ');
       const addressToAdd = {
-        id,
-        name: formattedName,
-        lastName: formattedLastName,
-        phoneNumber,
-        address: formattedAddress,
-        zipCode: formattedZipCode,
-        city: formattedCity,
-        state: formattedState,
+        id, value: id,
+        name: fmt(name), lastName: fmt(lastName), phoneNumber,
+        address: fmt(address), zipCode: fmt(zipCode), city: fmt(city), state: fmt(state),
         isMain,
-        label: `${formattedName} ${formattedLastName} - ${formattedAddress} - ${formattedCity}, ${formattedState} ${formattedZipCode}`,
-        value: id,
+        label: `${fmt(name)} ${fmt(lastName)} - ${fmt(address)} - ${fmt(city)}, ${fmt(state)} ${fmt(zipCode)}`,
       };
 
       if (isMain && userAddresses.length > 0) {
-        const currentMainAddressIndex = userAddresses.findIndex(
-          (address) => address.isMain
-        );
-
-        userAddresses[currentMainAddressIndex].isMain = false;
-
+        const mainIdx = userAddresses.findIndex((a) => a.isMain);
+        if (mainIdx >= 0) userAddresses[mainIdx].isMain = false;
         userAddresses.unshift(addressToAdd);
       } else {
         userAddresses.push(addressToAdd);
       }
 
-      for (let i = 1; i <= userAddresses.length; i++) {
-        userAddresses[i - 1].displayOrder = i;
-      }
-
-      await updateDoc(userRef, {
-        addresses: userAddresses,
-      });
-
-      dispatch({ type: 'UPDATE_ADDRESSES', payload: userAddresses });
+      userAddresses.forEach((a, i) => (a.displayOrder = i + 1));
+      saveAddresses(userAddresses);
       setIsLoading(false);
       return addressToAdd;
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }
   };
 
-  const editAddress = async ({
-    name,
-    lastName,
-    phoneNumber,
-    address,
-    zipCode,
-    city,
-    state,
-    isMain,
-    id,
-    displayOrder,
-  }) => {
+  const editAddress = async ({ name, lastName, phoneNumber, address, zipCode, city, state, isMain, id, displayOrder }) => {
     setError(null);
     setIsLoading(true);
     try {
-      // Check so that there is always at least one address that is default
+      let userAddresses = [...addresses];
+      const fmt = (s) => s.trim().replace(/\s+/g, ' ');
 
       if (!isMain) {
-        const currentAddressIndex = userAddresses.findIndex(
-          (address) => address.id === id
-        );
-
-        userAddresses[currentAddressIndex].isMain
-          ? (isMain = true)
-          : (isMain = false);
+        const cur = userAddresses.find((a) => a.id === id);
+        isMain = cur?.isMain || false;
       }
-
-      const formattedName = name.trim().replace(/\s+/g, ' ');
-      const formattedLastName = lastName.trim().replace(/\s+/g, ' ');
-      const formattedAddress = address.trim().replace(/\s+/g, ' ');
-      const formattedZipCode = zipCode.trim().replace(/\s+/g, ' ');
-      const formattedCity = city.trim().replace(/\s+/g, ' ');
-      const formattedState = state.trim().replace(/\s+/g, ' ');
 
       const updatedAddress = {
-        id,
-        name: formattedName,
-        lastName: formattedLastName,
-        phoneNumber,
-        address: formattedAddress,
-        zipCode: formattedZipCode,
-        city: formattedCity,
-        state: formattedState,
+        id, value: id, displayOrder,
+        name: fmt(name), lastName: fmt(lastName), phoneNumber,
+        address: fmt(address), zipCode: fmt(zipCode), city: fmt(city), state: fmt(state),
         isMain,
-        label: `${formattedName} ${formattedLastName} - ${formattedAddress} - ${formattedCity}, ${formattedState} ${formattedZipCode}`,
-        value: id,
-        displayOrder,
+        label: `${fmt(name)} ${fmt(lastName)} - ${fmt(address)} - ${fmt(city)}, ${fmt(state)} ${fmt(zipCode)}`,
       };
 
-      let updatedAddresses = [...userAddresses];
-
       if (isMain) {
-        updatedAddresses = userAddresses.filter((address) => address.id !== id);
-
-        const currentMainAddressIndex = updatedAddresses.findIndex(
-          (address) => address.isMain
-        );
-
-        if (currentMainAddressIndex >= 0) {
-          updatedAddresses[currentMainAddressIndex].isMain = false;
-        }
-
-        updatedAddresses.unshift(updatedAddress);
-
-        for (let i = 1; i <= updatedAddresses.length; i++) {
-          updatedAddresses[i - 1].displayOrder = i;
-        }
+        userAddresses = userAddresses.filter((a) => a.id !== id);
+        const mainIdx = userAddresses.findIndex((a) => a.isMain);
+        if (mainIdx >= 0) userAddresses[mainIdx].isMain = false;
+        userAddresses.unshift(updatedAddress);
+        userAddresses.forEach((a, i) => (a.displayOrder = i + 1));
       } else {
-        const addressToEditIndex = updatedAddresses.findIndex(
-          (address) => address.id === id
-        );
-
-        updatedAddresses[addressToEditIndex] = {
-          ...updatedAddress,
-        };
+        const idx = userAddresses.findIndex((a) => a.id === id);
+        userAddresses[idx] = updatedAddress;
       }
 
-      await updateDoc(userRef, {
-        addresses: updatedAddresses,
-      });
-
-      dispatch({ type: 'UPDATE_ADDRESSES', payload: updatedAddresses });
-
+      saveAddresses(userAddresses);
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }
@@ -192,44 +100,15 @@ export const useAddress = () => {
   const deleteAddress = async (id) => {
     setError(null);
     setIsLoading(true);
-
     try {
-      const checkoutSessionDoc = await getDoc(checkoutSessionRef);
-
-      if (checkoutSessionDoc.exists()) {
-        const { shippingAddressId } = checkoutSessionDoc.data();
-        if (shippingAddressId === id) {
-          await updateDoc(checkoutSessionRef, {
-            shippingAddressId: null,
-          });
-        }
+      let userAddresses = addresses.filter((a) => a.id !== id);
+      if (userAddresses.length > 0) {
+        userAddresses.forEach((a, i) => (a.displayOrder = i + 1));
+        if (!userAddresses.find((a) => a.isMain)) userAddresses[0].isMain = true;
       }
-
-      const updatedAddresses = userAddresses.filter(
-        (address) => address.id !== id
-      );
-
-      if (updatedAddresses.length > 0) {
-        for (let i = 1; i <= updatedAddresses.length; i++) {
-          updatedAddresses[i - 1].displayOrder = i;
-        }
-
-        const checkForMain = updatedAddresses.find((address) => address.isMain);
-
-        if (!checkForMain) {
-          updatedAddresses[0].isMain = true;
-        }
-      }
-
-      await updateDoc(userRef, {
-        addresses: updatedAddresses,
-      });
-
-      dispatch({ type: 'UPDATE_ADDRESSES', payload: updatedAddresses });
-
+      saveAddresses(userAddresses);
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }

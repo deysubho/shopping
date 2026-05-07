@@ -96,11 +96,7 @@ const Payment = () => {
 
     if (!initialOption) {
       setDefaultOption({ label: 'Add new address', value: 'new' });
-      setBillingInput({
-        ...billingInput,
-        label: 'Add new Address',
-        value: 'new',
-      });
+      setBillingInput({ ...billingInput, label: 'Add new Address', value: 'new' });
     } else {
       setDefaultOption(initialOption);
       setBillingInput({ ...billingInput, ...initialOption });
@@ -116,15 +112,8 @@ const Payment = () => {
   }, [billingInput.value]);
 
   const handleBillingInput = (key, value) => {
-    setBillingInput((prevState) => ({
-      ...prevState,
-      [key]: value,
-    }));
-
-    setNewAddress((prevState) => ({
-      ...prevState,
-      [key]: value,
-    }));
+    setBillingInput((prevState) => ({ ...prevState, [key]: value }));
+    setNewAddress((prevState) => ({ ...prevState, [key]: value }));
   };
 
   const handleSelectAddress = (option) => {
@@ -161,7 +150,10 @@ const Payment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await createOrder(cardInput, {
+    const paymentInfo = paymentOption === 'cod'
+      ? { method: 'Cash on Delivery' }
+      : cardInput;
+    await createOrder(paymentInfo, {
       address: billingInput.address,
       city: billingInput.city,
       id: billingInput.id,
@@ -171,7 +163,6 @@ const Payment = () => {
       state: billingInput.state,
       zipCode: billingInput.zipCode,
     });
-
     setNavigation(true);
   };
 
@@ -184,43 +175,23 @@ const Payment = () => {
   }, [navigation]);
 
   const cardNumberStyles = {
-    label:
-      cardInput.cardNumber.length > 0
-        ? styles.label_focus
-        : styles.label_no_focus,
-    input:
-      cardInput.cardNumber.length > 0
-        ? styles.input_focus
-        : styles.input_no_focus,
+    label: cardInput.cardNumber.length > 0 ? styles.label_focus : styles.label_no_focus,
+    input: cardInput.cardNumber.length > 0 ? styles.input_focus : styles.input_no_focus,
   };
 
   const nameStyles = {
-    label:
-      cardInput.name.length > 0 ? styles.label_focus : styles.label_no_focus,
-    input:
-      cardInput.name.length > 0 ? styles.input_focus : styles.input_no_focus,
+    label: cardInput.name.length > 0 ? styles.label_focus : styles.label_no_focus,
+    input: cardInput.name.length > 0 ? styles.input_focus : styles.input_no_focus,
   };
 
   const expiryDateStyles = {
-    label:
-      cardInput.expiryDate.length > 0
-        ? styles.label_focus
-        : styles.label_no_focus,
-    input:
-      cardInput.expiryDate.length > 0
-        ? styles.input_focus
-        : styles.input_no_focus,
+    label: cardInput.expiryDate.length > 0 ? styles.label_focus : styles.label_no_focus,
+    input: cardInput.expiryDate.length > 0 ? styles.input_focus : styles.input_no_focus,
   };
 
   const securityCodeStyles = {
-    label:
-      cardInput.securityCode.length > 0
-        ? styles.label_focus
-        : styles.label_no_focus,
-    input:
-      cardInput.securityCode.length > 0
-        ? styles.input_focus
-        : styles.input_no_focus,
+    label: cardInput.securityCode.length > 0 ? styles.label_focus : styles.label_no_focus,
+    input: cardInput.securityCode.length > 0 ? styles.input_focus : styles.input_no_focus,
   };
 
   return (
@@ -235,9 +206,6 @@ const Payment = () => {
             <form id="form" onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.payment_options_container}>
                 <h2 className={styles.title}>Payment Method</h2>
-                <h3 className={styles.subtitle}>
-                  Just use random numbers. There is no validation.
-                </h3>
                 <div className={styles.payment_options_wrapper}>
                   <div>
                     <label className={styles.payment_option}>
@@ -252,25 +220,20 @@ const Payment = () => {
                             : styles.radio_unselected
                         }
                       />
-                      <span>Credit card</span>
+                      <span>Credit Card / Debit Card</span>
                     </label>
                   </div>
                   {paymentOption === 'creditCard' && (
                     <div className={styles.inputs_wrapper}>
                       <div className={styles.float_container}>
-                        <label
-                          htmlFor="cardNumber"
-                          className={cardNumberStyles.label}
-                        >
+                        <label htmlFor="cardNumber" className={cardNumberStyles.label}>
                           Card number
                         </label>
                         <input
                           id="cardNumber"
                           onChange={handleCardNumberInput}
                           onKeyPress={(e) => {
-                            if (!/[0-9]/.test(e.key)) {
-                              e.preventDefault();
-                            }
+                            if (!/[0-9]/.test(e.key)) e.preventDefault();
                           }}
                           value={cardInput.cardNumber}
                           type="text"
@@ -297,20 +260,14 @@ const Payment = () => {
                       </div>
                       <div className={styles.card_security}>
                         <div className={styles.float_container}>
-                          <label
-                            htmlFor="expiryDate"
-                            className={expiryDateStyles.label}
-                            autoComplete="off"
-                          >
+                          <label htmlFor="expiryDate" className={expiryDateStyles.label}>
                             Expiration Date (MM/YY)
                           </label>
                           <input
                             id="expiryDate"
                             onChange={handleExpiryDateInput}
                             onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
+                              if (!/[0-9]/.test(e.key)) e.preventDefault();
                             }}
                             value={cardInput.expiryDate}
                             type="text"
@@ -321,19 +278,14 @@ const Payment = () => {
                           />
                         </div>
                         <div className={styles.float_container}>
-                          <label
-                            htmlFor="securityCode"
-                            className={securityCodeStyles.label}
-                          >
+                          <label htmlFor="securityCode" className={securityCodeStyles.label}>
                             Security code
                           </label>
                           <input
                             id="securityCode"
                             onChange={handleSecurityCodeInput}
                             onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
+                              if (!/[0-9]/.test(e.key)) e.preventDefault();
                             }}
                             value={cardInput.securityCode}
                             type="password"
@@ -346,12 +298,31 @@ const Payment = () => {
                       </div>
                     </div>
                   )}
+                  <div>
+                    <label className={styles.payment_option}>
+                      <input
+                        type="radio"
+                        value="cod"
+                        checked={paymentOption === 'cod'}
+                        onChange={(e) => setPaymentOption(e.target.value)}
+                        className={
+                          paymentOption === 'cod'
+                            ? styles.radio_selected
+                            : styles.radio_unselected
+                        }
+                      />
+                      <span>Cash on Delivery</span>
+                    </label>
+                  </div>
+                  {paymentOption === 'cod' && (
+                    <div className={styles.cod_message}>
+                      <p>Pay with cash when your order is delivered.</p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className={styles.billing_address_container}>
-                <h2 className={styles.billing_address_title}>
-                  Billing Address
-                </h2>
+                <h2 className={styles.billing_address_title}>Billing Address</h2>
                 <div className={styles.billing_address_wrapper}>
                   <div>
                     <label className={styles.payment_option}>
@@ -407,7 +378,7 @@ const Payment = () => {
                 Back to shipping
               </p>
               <Button form="form" type="submit" className={styles.button}>
-                Pay now
+                {paymentOption === 'cod' ? 'Confirm Order' : 'Pay now'}
               </Button>
             </div>
           </>

@@ -43,7 +43,7 @@ const OrderSummary = () => {
       shipping_option_className = styles.shipping_option;
     } else {
       shipping_price = 15;
-      shipping_option = '(expedited)';
+      shipping_option = '(expected)';
       shipping_option_className = styles.shipping_option;
     }
   }
@@ -72,14 +72,14 @@ const OrderSummary = () => {
               </p>
               <p className={styles.size}>{item.size?.toUpperCase()}</p>
             </div>
-            <p className={styles.price}>$ {formatPrice(item.price)}</p>
+            <p className={styles.price}>₹ {formatPrice(item.price)}</p>
           </div>
         ))}
       </div>
       <div className={styles.subtotal_wrapper}>
         <div>
           <p>Subtotal</p>
-          <p className={styles.subtotal_price}>$ {formatPrice(subtotal)}</p>
+          <p className={styles.subtotal_price}>₹ {formatPrice(subtotal)}</p>
         </div>
         <div>
           <p>
@@ -87,14 +87,14 @@ const OrderSummary = () => {
           </p>
           <p className={shipping_option_className}>
             {shipping_price > 0
-              ? `$ ${formatPrice(shipping_price)}`
+              ? `₹ ${formatPrice(shipping_price)}`
               : shipping_price_text}
           </p>
         </div>
       </div>
       <div className={styles.total_wrapper}>
         <p>Total</p>
-        <p className={styles.total_price}>$ {formatPrice(total)}</p>
+        <p className={styles.total_price}>₹ {formatPrice(total)}</p>
       </div>
     </>
   );

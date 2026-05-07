@@ -1,8 +1,7 @@
 import moment from 'moment';
 
 export const formatPrice = (number) => {
-  // return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return number + '.00';
+  return Number(number).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
 
 export const formatDiscount = ({ currentPrice, actualPrice }) => {
@@ -64,7 +63,8 @@ export const formatCvv = (value) => {
 };
 
 export const formatDate = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') return moment(value).format('DD/MM/YY');
   const timestamp = `${value.seconds}.${value.nanoseconds}`;
-
-  return moment.unix(parseFloat(timestamp)).format('MM/DD/YY');
+  return moment.unix(parseFloat(timestamp)).format('DD/MM/YY');
 };

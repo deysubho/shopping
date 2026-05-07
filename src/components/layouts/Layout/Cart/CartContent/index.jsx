@@ -4,7 +4,6 @@ import { CgShoppingBag, CgCheckO } from 'react-icons/cg';
 
 import { useCartContext } from 'hooks/useCartContext';
 import { useCart } from 'hooks/useCart';
-import { useToast } from 'hooks/useToast';
 
 import { CartItem, ProductSlider, Button } from 'components/common';
 
@@ -14,15 +13,8 @@ import styles from './index.module.scss';
 
 const CartContent = ({ closeCartModal, slides }) => {
   const { items } = useCartContext();
-  const { addItem, removeItem, deleteItem, isLoading, loadingItemId, error } =
+  const { addItem, removeItem, deleteItem, isLoading, loadingItemId } =
     useCart();
-  const { sendToast } = useToast();
-
-  useEffect(() => {
-    if (error) {
-      sendToast({ error: true, content: { message: error.message } });
-    }
-  }, [error]);
 
   const totalQuantity = addAllItemsQuantity(items);
 
@@ -104,7 +96,7 @@ const CartContent = ({ closeCartModal, slides }) => {
           <div className={styles.footer_container}>
             <div className={styles.footer_wrapper}>
               <p>
-                <span>Total: ${addAllItemsPrice(items)} </span> |{' '}
+                <span>Total: ₹{addAllItemsPrice(items)} </span> |{' '}
                 {totalQuantity} {+totalQuantity > 1 ? 'items' : 'item'}
               </p>
               <div className={styles.buttons_wrapper}>

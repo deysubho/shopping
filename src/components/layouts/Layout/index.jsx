@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import { Outlet, useLocation } from 'react-router-dom';
 
-import Toast from './Toast';
 import Cart from './Cart';
 import Header from './Header';
 import Footer from './Footer';
@@ -16,7 +15,6 @@ const Layout = () => {
 
   return (
     <>
-      <Toast />
       <div id="layout">
         <Cart
           isCartModalOpen={isCartModalOpen}

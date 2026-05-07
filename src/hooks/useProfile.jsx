@@ -1,17 +1,11 @@
 import { useState } from 'react';
 
-import { doc, updateDoc } from 'firebase/firestore';
-
-import { db } from 'db/config';
-
+import { KEYS, getItem, setItem } from 'db/config';
 import { useAuthContext } from './useAuthContext';
-
 import { handleError } from 'helpers/error/handleError';
 
 export const useProfile = () => {
   const { user, dispatch } = useAuthContext();
-
-  const userRef = doc(db, 'users', user.uid);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -20,20 +14,18 @@ export const useProfile = () => {
     setError(null);
     setIsLoading(true);
     try {
-      await updateDoc(userRef, {
-        name,
-        lastName,
-        phoneNumber,
-      });
+      const users = getItem(KEYS.users) || [];
+      const idx = users.findIndex((u) => u.user.uid === user.uid);
+      if (idx >= 0) {
+        users[idx] = { ...users[idx], name, lastName, phoneNumber };
+        setItem(KEYS.users, users);
+        const session = getItem(KEYS.session);
+        setItem(KEYS.session, { ...session, name, lastName, phoneNumber });
+      }
 
-      dispatch({
-        type: 'UPDATE_USER',
-        payload: { name, lastName, phoneNumber },
-      });
-
+      dispatch({ type: 'UPDATE_USER', payload: { name, lastName, phoneNumber } });
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }

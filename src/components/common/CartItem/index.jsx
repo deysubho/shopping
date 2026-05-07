@@ -72,7 +72,7 @@ const CartItem = ({
             <p className={styles.title}>{`${model} ${type}`}</p>
             <p className={styles.color}>{color}</p>
             <p className={styles.size}>{size?.toUpperCase()}</p>
-            <p className={styles.price}>${formatPrice(price)}</p>
+            <p className={styles.price}>₹{formatPrice(price)}</p>
           </div>
           <MediaContainer
             image={image}
@@ -111,7 +111,7 @@ const CartItem = ({
           </i>
         </div>
         <div className={styles.total}>
-          ${addIndividualItemPrice({ price, quantity })}
+          ₹{addIndividualItemPrice({ price, quantity })}
         </div>
       </div>
     </div>

@@ -1,14 +1,22 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+// Local storage keys
+export const KEYS = {
+  users: 'local_users',
+  session: 'local_session',
+  carts: 'local_carts',
+  orders: 'local_orders',
+  newsletter: 'local_newsletter',
+  adminProducts: 'local_admin_products',
+};
 
-import { firebaseConfig } from './firebase-config';
+export const getItem = (key) => {
+  try {
+    const val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : null;
+  } catch {
+    return null;
+  }
+};
 
-const app = initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-export { auth, db, storage };
+export const setItem = (key, value) => {
+  localStorage.setItem(key, JSON.stringify(value));
+};

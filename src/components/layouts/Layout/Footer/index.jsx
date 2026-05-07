@@ -33,7 +33,7 @@ const Footer = () => {
       <div className={styles.container}>
         <div className={styles.sitemap}>
           <div className={styles.nav_wrapper}>
-            <h4 className={styles.nav_title}>Help</h4>
+            <h4 className={styles.nav_title}>SnapBuy</h4>
             <ul className={styles.nav}>
               <li>
                 <Link to="/">Help Center</Link>

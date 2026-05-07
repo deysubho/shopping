@@ -1,23 +1,13 @@
 import { useState } from 'react';
+import { v4 as uuid } from 'uuid';
 
-import {
-  EmailAuthProvider,
-  linkWithCredential,
-  signInWithEmailAndPassword,
-  signOut,
-} from 'firebase/auth';
-import { doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
-
-import { auth } from 'db/config';
-import { db } from 'db/config';
-
+import { KEYS, getItem, setItem } from 'db/config';
 import { useAuthContext } from './useAuthContext';
 import { useCartContext } from './useCartContext';
-
 import { handleError } from 'helpers/error/handleError';
 
 export const useAuth = () => {
-  const { user, dispatch: dispatchAuthAction } = useAuthContext();
+  const { dispatch: dispatchAuthAction } = useAuthContext();
   const { dispatch: dispatchCartAction } = useCartContext();
 
   const [error, setError] = useState(null);
@@ -28,35 +18,32 @@ export const useAuth = () => {
     setError(null);
     setIsLoading(true);
     setDefaultValue({ name, lastName, email });
-
     try {
-      const credential = EmailAuthProvider.credential(email, password);
+      const users = getItem(KEYS.users) || [];
+      if (users.find((u) => u.email === email)) {
+        throw new Error('Email already in use.');
+      }
 
-      const userCredential = await linkWithCredential(
-        auth.currentUser,
-        credential
-      );
-
-      // if (!userCredential) {
-      //   throw new Error('No se pudo crear la cuenta');
-      // }
-
-      const user = userCredential.user;
-
+      const user = { uid: uuid(), isAnonymous: false };
       const userData = {
+        user,
         name,
         lastName,
         email,
+        password,
         phoneNumber: null,
         addresses: [],
         isVerified: true,
+        isAdmin: false,
+        authIsReady: true,
       };
 
-      await setDoc(doc(db, 'users', user.uid), userData);
+      users.push(userData);
+      setItem(KEYS.users, users);
+      setItem(KEYS.session, userData);
 
-      dispatchAuthAction({ type: 'LOGIN', payload: { user, ...userData } });
+      dispatchAuthAction({ type: 'LOGIN', payload: userData });
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }
@@ -66,25 +53,15 @@ export const useAuth = () => {
     setError(null);
     setIsLoading(true);
     setDefaultValue({ email });
-
     try {
       dispatchCartAction({ type: 'IS_LOGIN' });
-      const anonymousUser = user;
+      const users = getItem(KEYS.users) || [];
+      const found = users.find((u) => u.email === email && u.password === password);
+      if (!found) throw new Error('Invalid email or password.');
 
-      const anonymousCartRef = doc(db, 'carts', anonymousUser.uid);
-      const anonymousCartDoc = await getDoc(anonymousCartRef);
-
-      await signInWithEmailAndPassword(auth, email, password);
-
-      // if (!userCredential) {
-      //   throw Error('Error');
-      // }
-
-      if (anonymousCartDoc.exists()) {
-        deleteDoc(doc(db, 'carts', anonymousUser.uid));
-      }
+      setItem(KEYS.session, found);
+      dispatchAuthAction({ type: 'LOGIN', payload: found });
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       dispatchCartAction({ type: 'IS_NOT_LOGIN' });
       setIsLoading(false);
@@ -95,11 +72,10 @@ export const useAuth = () => {
     setError(null);
     setIsLoading(true);
     try {
-      await signOut(auth);
+      localStorage.removeItem(KEYS.session);
       dispatchCartAction({ type: 'DELETE_CART' });
       dispatchAuthAction({ type: 'LOGOUT' });
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }

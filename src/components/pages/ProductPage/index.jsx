@@ -4,7 +4,6 @@ import { Pagination } from 'swiper';
 
 import { useProductContext } from 'hooks/useProductContext';
 import { useCart } from 'hooks/useCart';
-import { useToast } from 'hooks/useToast';
 
 import ProductColors from './ProductColors';
 import ProductSize from './ProductSize';
@@ -32,7 +31,6 @@ const ProductPage = () => {
     singleSize,
   } = useProductContext();
   const { addItem, isLoading, error } = useCart();
-  const { sendToast } = useToast();
 
   const [notify, setNotify] = useState(false);
 
@@ -54,20 +52,6 @@ const ProductPage = () => {
 
   useEffect(() => {
     if (notify) {
-      if (!error) {
-        sendToast({
-          addToCart: true,
-          content: {
-            image: selectedVariant.images[0].src,
-            message: `${selectedProduct.model} ${selectedProduct.type} - ${
-              selectedVariant.color
-            } ${selectedSize ? ` - ${selectedSize.toUpperCase()}` : ''}`,
-          },
-        });
-      } else if (error) {
-        sendToast({ error: true, content: { message: error.message } });
-      }
-
       setNotify(false);
     }
   }, [notify]);
@@ -193,14 +177,14 @@ const ProductPage = () => {
                         selectedProduct.price ? (
                           <>
                             <span className={styles.discounted_price}>
-                              ${formatPrice(selectedVariant.variantPrice)}
+                              ₹{formatPrice(selectedVariant.variantPrice)}
                             </span>
                             <span className={styles.crossed_price}>
-                              ${formatPrice(selectedProduct.price)}
+                              ₹{formatPrice(selectedProduct.price)}
                             </span>
                           </>
                         ) : (
-                          <span>${formatPrice(selectedProduct.price)}</span>
+                          <span>₹{formatPrice(selectedProduct.price)}</span>
                         )}
                       </div>
                     </div>
@@ -297,14 +281,14 @@ const ProductPage = () => {
                         selectedProduct.price ? (
                           <>
                             <span className={styles.discounted_price}>
-                              ${formatPrice(selectedVariant.variantPrice)}
+                              ₹{formatPrice(selectedVariant.variantPrice)}
                             </span>
                             <span className={styles.crossed_price}>
-                              ${formatPrice(selectedProduct.price)}
+                              ₹{formatPrice(selectedProduct.price)}
                             </span>
                           </>
                         ) : (
-                          <span>${formatPrice(selectedProduct.price)}</span>
+                          <span>₹{formatPrice(selectedProduct.price)}</span>
                         )}
                       </div>
                     </div>

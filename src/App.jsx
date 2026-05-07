@@ -14,6 +14,9 @@ import {
   HomePage,
   AccountPage,
   AddressesPage,
+  AdminPage,
+  AdminAddProduct,
+  AdminEditProduct,
   LoginPage,
   SignUpPage,
   CollectionPage,
@@ -78,15 +81,14 @@ const App = () => {
               <Route path="account/signup" element={<SignUpPage />} />
             </Route>
 
-            {/* <Route element={<ProtectedRoutes needAdmin={true} />}>
+            <Route element={<ProtectedRoutes needAdmin={true} />}>
               <Route path="admin" element={<AdminPage />} />
-              <Route path="admin/products" element={<AdminCollections />} />
               <Route path="admin/products/add" element={<AdminAddProduct />} />
               <Route
                 path="admin/products/:productId"
                 element={<AdminEditProduct />}
               />
-            </Route> */}
+            </Route>
 
             <Route path="*" element={<Navigate to="/" />} />
           </Route>

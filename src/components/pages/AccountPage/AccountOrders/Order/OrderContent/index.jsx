@@ -26,8 +26,8 @@ const OrderContent = ({
   }, ['Escape']);
 
   const shippingOptionContent = shippingOption.standard
-    ? 'Standard  (3 - 5 Bus. Days)'
-    : 'Expedited (2 - 3 Bus. Days)';
+    ? 'Standard (3 - 5 Business Days)'
+    : 'Expected (2 - 3 Business Days)';
   const subtotal = addAllItemsPriceNumber(items);
   const total = subtotal + shippingCost;
 
@@ -84,7 +84,7 @@ const OrderContent = ({
                 </p>
                 <p className={styles.size}>{item.size?.toUpperCase()}</p>
               </div>
-              <p className={styles.price}>${formatPrice(item.price)}</p>
+              <p className={styles.price}>₹{formatPrice(item.price)}</p>
             </div>
           ))}
         </div>
@@ -93,15 +93,15 @@ const OrderContent = ({
         <ul>
           <li>
             <span>Subtotal</span>
-            <span>$ {formatPrice(subtotal)}</span>
+            <span>₹ {formatPrice(subtotal)}</span>
           </li>
           <li>
             <span>Shipping</span>
-            <span>$ {formatPrice(shippingCost)} </span>
+            <span>₹ {formatPrice(shippingCost)} </span>
           </li>
           <li>
             <span>Total</span>
-            <span>$ {formatPrice(total)} </span>
+            <span>₹ {formatPrice(total)} </span>
           </li>
         </ul>
       </div>

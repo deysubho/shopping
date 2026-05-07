@@ -1,34 +1,24 @@
 import { useState } from 'react';
 
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-
-import { db } from 'db/config';
-
-import { handleError } from 'helpers/error/handleError';
+import { KEYS, getItem, setItem } from 'db/config';
 
 export const useNewsletter = () => {
-  const newsletterRef = collection(db, 'newsletter');
-
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
 
   const subscribeToNewsletter = async ({ email }) => {
     setError(null);
     try {
-      const q = query(newsletterRef, where('email', '==', email));
-
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        await addDoc(newsletterRef, { email });
-
-        setSuccess({ message: 'Thanks for joining!' });
-      } else {
+      const list = getItem(KEYS.newsletter) || [];
+      if (list.includes(email)) {
         setSuccess({ message: 'You have already joined!' });
+      } else {
+        list.push(email);
+        setItem(KEYS.newsletter, list);
+        setSuccess({ message: 'Thanks for joining!' });
       }
     } catch (err) {
-      console.error(err);
-      setError(handleError(err));
+      setError({ message: err.message });
     }
   };
 

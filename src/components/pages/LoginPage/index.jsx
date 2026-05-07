@@ -2,7 +2,6 @@ import { useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { useAuth } from 'hooks/useAuth';
-import { useToast } from 'hooks/useToast';
 
 import { Loader } from 'components/common';
 
@@ -12,7 +11,6 @@ const LoginPage = () => {
   const { state: routerState } = useLocation();
 
   const { login, isLoading, error, defaultValue } = useAuth();
-  const { sendToast } = useToast();
 
   const emailInput = useRef();
   const passwordInput = useRef();
@@ -28,7 +26,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (error) {
-      sendToast({ error: true, content: { message: error.message } });
+      console.error(error);
     }
   }, [error]);
 
@@ -68,7 +66,7 @@ const LoginPage = () => {
                   </button>
                 </form>
                 <p className={styles.no_account}>
-                  New to Flaakko?{' '}
+                  New to SnapBuy?{' '}
                   <Link to="/account/signup" state={routerState}>
                     Create account
                   </Link>

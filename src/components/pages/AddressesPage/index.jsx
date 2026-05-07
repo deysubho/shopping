@@ -4,7 +4,6 @@ import { BiChevronLeft, BiPlus } from 'react-icons/bi';
 
 import { useAuthContext } from 'hooks/useAuthContext';
 import { useAddress } from 'hooks/useAddress';
-import { useToast } from 'hooks/useToast';
 
 import AddAddress from './AddAddress';
 import Address from './Address';
@@ -16,7 +15,6 @@ import styles from './index.module.scss';
 const AddressesPage = () => {
   const { addresses } = useAuthContext();
   const { deleteAddress, isLoading, error } = useAddress();
-  const { sendToast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,7 +24,7 @@ const AddressesPage = () => {
 
   useEffect(() => {
     if (error) {
-      sendToast({ error: true, content: { message: error.message } });
+      console.error(error);
     }
   }, [error]);
 

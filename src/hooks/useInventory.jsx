@@ -1,106 +1,64 @@
 import { useState } from 'react';
 
-import {
-  doc,
-  collectionGroup,
-  query,
-  where,
-  setDoc,
-  deleteDoc,
-  documentId,
-  getDocs,
-} from 'firebase/firestore';
-
-import { db } from 'db/config';
-
-import { useAuthContext } from './useAuthContext';
 import { useCartContext } from './useCartContext';
-
 import { addAllItemsQuantity } from 'helpers/item';
 import { CustomError } from 'helpers/error/customError';
 import { handleError } from 'helpers/error/handleError';
 
+import { KEYS, getItem } from 'db/config';
+import productsJson from 'data/products.json';
+
+const getSkuStock = (productId, skuId) => {
+  const adminProducts = getItem(KEYS.adminProducts) || [];
+  const products = [...productsJson, ...adminProducts];
+  const product = products.find((p) => p.id === productId);
+  if (!product) return null;
+  for (const variant of product.variants) {
+    const sku = variant.skus.find((s) => s.id === skuId);
+    if (sku) return sku;
+  }
+  return null;
+};
+
 export const useInventory = () => {
-  const { user } = useAuthContext();
   const { dispatch } = useCartContext();
 
-  const [isLoading, setIsLoading] = useState();
-  const [error, setError] = useState();
-
-  const skusRef = collectionGroup(db, 'skus');
-  const cartRef = doc(db, 'carts', user.uid);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const checkInventory = async (items) => {
     setError(null);
     setIsLoading(true);
     try {
-      const skuIdList = items.map(
-        (item) => 'products/' + item.productId + '/skus/' + item.skuId
-      );
-
-      const skus = {};
-
-      while (skuIdList.length) {
-        const batch = skuIdList.splice(0, 10);
-        const q = query(skusRef, where(documentId(), 'in', [...batch]));
-        const skusSnapshot = await getDocs(q);
-
-        skusSnapshot.forEach((doc) => {
-          skus[doc.id] = { skuId: doc.id, ...doc.data() };
-        });
-      }
-
       let updatedItems = [...items];
-      let stockDifference;
+      let stockDifference = false;
 
       for (const item of items) {
-        const { quantity: availableQuantity } = skus[item.skuId];
+        const sku = getSkuStock(item.productId, item.skuId);
+        const availableQuantity = sku ? sku.quantity : 0;
 
         if (availableQuantity <= 0) {
           stockDifference = true;
-          updatedItems = updatedItems.filter(
-            (cartItem) => cartItem.skuId !== item.skuId
-          );
+          updatedItems = updatedItems.filter((i) => i.skuId !== item.skuId);
         } else if (availableQuantity < item.quantity) {
           stockDifference = true;
-          const itemInCartIndex = updatedItems.findIndex(
-            (i) => i.skuId === item.skuId
-          );
-          updatedItems[itemInCartIndex].quantity = availableQuantity;
+          const idx = updatedItems.findIndex((i) => i.skuId === item.skuId);
+          updatedItems[idx] = { ...updatedItems[idx], quantity: availableQuantity };
         }
       }
 
-      const cartTotalItemQuantity = addAllItemsQuantity(updatedItems);
-
-      if (cartTotalItemQuantity === 0) {
-        console.log('in here 1');
-
-        await deleteDoc(cartRef);
-
-        dispatch({
-          type: 'DELETE_CART',
-        });
+      if (addAllItemsQuantity(updatedItems) === 0) {
+        dispatch({ type: 'DELETE_CART' });
       } else if (stockDifference) {
-        await setDoc(cartRef, {
-          items: updatedItems,
-        });
-
-        dispatch({
-          type: 'UPDATE_CART',
-          payload: updatedItems,
-        });
+        dispatch({ type: 'UPDATE_CART', payload: updatedItems });
       }
 
       if (stockDifference) {
-        console.log('in here 2');
-        throw new CustomError(
-          'Available stock is limited. Quantities in cart have been updated!'
-        );
+        throw new CustomError('Available stock is limited. Quantities in cart have been updated!');
       }
 
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }

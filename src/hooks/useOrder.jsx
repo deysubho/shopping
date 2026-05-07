@@ -1,60 +1,32 @@
 import { useState } from 'react';
+import { v4 as uuid } from 'uuid';
 
-import moment from 'moment';
-
-import {
-  writeBatch,
-  doc,
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-  addDoc,
-  increment,
-} from 'firebase/firestore';
-
-import { db } from 'db/config';
-
+import { KEYS, getItem, setItem } from 'db/config';
 import { useAuthContext } from './useAuthContext';
 import { useCartContext } from './useCartContext';
 import { useCheckoutContext } from './useCheckoutContext';
 import { useCart } from './useCart';
 import { useCheckout } from './useCheckout';
-
 import { handleError } from 'helpers/error/handleError';
 
 export const useOrder = () => {
   const { user } = useAuthContext();
   const { items } = useCartContext();
-  const { email, shippingAddress, shippingOption, shippingCost } =
-    useCheckoutContext();
+  const { email, shippingAddress, shippingOption, shippingCost } = useCheckoutContext();
   const { deleteCart } = useCart();
   const { deleteCheckoutSession } = useCheckout();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const ordersRef = collection(db, 'orders');
-
   const createOrder = async (paymentInfo, billingAddress) => {
     setError(null);
     setIsLoading(true);
     try {
-      const batch = writeBatch(db);
-
-      for (const item of items) {
-        const skuRef = doc(
-          collection(db, 'products', item.productId, 'skus'),
-          item.skuId
-        );
-        batch.update(skuRef, { quantity: increment(-item.quantity) });
-      }
-
-      await batch.commit();
-
-      await addDoc(ordersRef, {
-        createdAt: moment().toDate(),
+      const orders = getItem(KEYS.orders) || [];
+      orders.push({
+        id: uuid(),
+        createdAt: new Date().toISOString(),
         items,
         email,
         shippingAddress,
@@ -64,38 +36,23 @@ export const useOrder = () => {
         billingAddress,
         createdBy: user.uid,
       });
-
+      setItem(KEYS.orders, orders);
       await deleteCart();
       await deleteCheckoutSession();
-
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
       setIsLoading(false);
     }
   };
 
   const getOrders = async () => {
-    setError(null);
-
     try {
-      const orders = [];
-
-      const q = query(
-        ordersRef,
-        where('createdBy', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      );
-
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        orders.push({ id: doc.id, ...doc.data() });
-      });
-
-      return orders;
+      const orders = getItem(KEYS.orders) || [];
+      return orders
+        .filter((o) => o.createdBy === user.uid)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
     } catch (err) {
-      console.error(err);
       setError(handleError(err));
     }
   };

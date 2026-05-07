@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { useProfile } from 'hooks/useProfile';
-import { useToast } from 'hooks/useToast';
 
 import { Loader, Button } from 'components/common';
 
@@ -9,7 +8,6 @@ import styles from './index.module.scss';
 
 const EditProfile = ({ close, name, lastName, phoneNumber }) => {
   const { editProfile, isLoading, error } = useProfile();
-  const { sendToast } = useToast();
 
   const [notify, setNotify] = useState(false);
 
@@ -32,7 +30,6 @@ const EditProfile = ({ close, name, lastName, phoneNumber }) => {
   useEffect(() => {
     if (notify) {
       if (error) {
-        sendToast({ error: true, content: { message: error.message } });
         setNotify(false);
       } else {
         close();

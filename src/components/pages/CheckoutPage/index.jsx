@@ -5,7 +5,6 @@ import { useCheckoutContext } from 'hooks/useCheckoutContext';
 import { useCartContext } from 'hooks/useCartContext';
 import { useCart } from 'hooks/useCart';
 import { useInventory } from 'hooks/useInventory';
-import { useToast } from 'hooks/useToast';
 
 import CheckoutProgression from './CheckoutProgression';
 import ShippingInfo from './ShippingInfo';
@@ -33,7 +32,6 @@ const CheckoutPage = () => {
   const { checkoutIsReady, currentStep } = useCheckoutContext();
   const { activateCartCheck } = useCart();
   const { checkInventory, isLoading, error: inventoryError } = useInventory();
-  const { sendToast } = useToast();
 
   const [stopCheckout, setStopCheckout] = useState(false);
 
@@ -72,10 +70,6 @@ const CheckoutPage = () => {
     if (inventoryError) {
       if (items.length === 0) {
         setStopCheckout(true);
-        sendToast({
-          error: true,
-          content: { message: `${inventoryError.message} Redirecting...` },
-        });
       }
 
       const timer = setTimeout(() => {

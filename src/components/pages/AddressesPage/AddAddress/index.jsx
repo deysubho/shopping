@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { useAddress } from 'hooks/useAddress';
-import { useToast } from 'hooks/useToast';
 
 import { Loader, Button } from 'components/common';
 
@@ -9,7 +8,6 @@ import styles from './index.module.scss';
 
 const AddAddress = ({ close }) => {
   const { createAddress, isLoading, error } = useAddress();
-  const { sendToast } = useToast();
 
   const [isChecked, setIsChecked] = useState(false);
   const [notify, setNotify] = useState(false);
@@ -45,7 +43,6 @@ const AddAddress = ({ close }) => {
   useEffect(() => {
     if (notify) {
       if (error) {
-        sendToast({ error: true, content: { message: error.message } });
         setNotify(false);
       } else {
         close();

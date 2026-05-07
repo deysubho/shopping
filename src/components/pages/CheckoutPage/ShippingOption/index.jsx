@@ -20,7 +20,7 @@ const ShippingOption = () => {
     isLoading,
   } = useCheckout();
 
-  const expiditedCost = 15;
+  const expiditedCost = 1245;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ const ShippingOption = () => {
                         : styles.radio_unselected
                     }
                   />
-                  <span>Standard Shipping (3 - 5 Bus. Days)</span>
+                  <span>Standard Shipping (3 - 5 Business Days)</span>
                 </label>
                 <p>Free</p>
               </div>
@@ -77,9 +77,9 @@ const ShippingOption = () => {
                         : styles.radio_unselected
                     }
                   />
-                  <span>Expedited (2 - 3 Bus. Days)</span>
+                  <span>Expected (2 - 3 Business Days)</span>
                 </label>
-                <p>${formatPrice(expiditedCost)}</p>
+                <p>₹{formatPrice(expiditedCost)}</p>
               </div>
             </form>
             <div className={styles.form_controls}>

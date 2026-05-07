@@ -13,7 +13,7 @@ const CheckoutSummary = () => {
   if (shippingOption.standard) {
     shipping_option = 'Standard - Free';
   } else {
-    shipping_option = 'Expedited - $15.00';
+    shipping_option = 'Expected - ₹1,245';
   }
 
   if (currentStep === 2)

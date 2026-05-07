@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useCartContext } from 'hooks/useCartContext';
 import { useCart } from 'hooks/useCart';
 import { useInventory } from 'hooks/useInventory';
-import { useToast } from 'hooks/useToast';
 
 import { CartItem, Button, Loader } from 'components/common';
 
@@ -27,7 +26,6 @@ const CartPage = () => {
     isLoading: isInventoryLoading,
     error: inventoryError,
   } = useInventory();
-  const { sendToast } = useToast();
 
   useEffect(() => {
     if (cartNeedsCheck && items.length > 0) {
@@ -39,13 +37,13 @@ const CartPage = () => {
 
   useEffect(() => {
     if (cartError) {
-      sendToast({ error: true, content: { message: cartError.message } });
+      console.error(cartError);
     }
   }, [cartError]);
 
   useEffect(() => {
     if (inventoryError) {
-      sendToast({ error: true, content: { message: inventoryError.message } });
+      console.error(inventoryError);
     }
   }, [inventoryError]);
 
@@ -54,7 +52,7 @@ const CartPage = () => {
       <>
         <div className={styles.checkout_wrapper}>
           <p className={styles.total}>
-            Total: <span>${addAllItemsPrice(items)}</span>
+            Total: <span>₹{addAllItemsPrice(items)}</span>
           </p>
           <Button to="/checkout" className={styles.checkout_button}>
             Checkout
